@@ -1,0 +1,19 @@
+# PDF processing
+pdfplumber>=0.10.0
+
+# HTTP requests
+requests>=2.31.0
+
+# ML/AI libraries
+torch>=2.0.0
+numpy>=1.24.0
+sentence-transformers>=2.2.2
+
+# Google Generative AI (Gemini)
+google-generativeai>=0.3.0
+
+# Orkes Conductor client
+conductor-python>=2.0.5
+
+# Environment variable management
+python-dotenv>=1.0.0

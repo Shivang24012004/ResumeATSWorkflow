@@ -1,0 +1,6 @@
+/.env
+/__pycache__
+/myenv
+/workers.py
+
+Final_Resume*

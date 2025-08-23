@@ -1,0 +1,189 @@
+{
+  "createTime": 1755869049863,
+  "updateTime": 1755870533861,
+  "name": "resume_analysis_workflow",
+  "description": "Workflow to analyze resume and calculate similarity with job description",
+  "version": 2,
+  "tasks": [
+    {
+      "name": "extract_pdf_text",
+      "taskReferenceName": "extract_pdf_text_ref",
+      "inputParameters": {
+        "pdf_path": "${workflow.input.pdf_path}"
+      },
+      "type": "SIMPLE",
+      "decisionCases": {},
+      "defaultCase": [],
+      "forkTasks": [],
+      "startDelay": 0,
+      "joinOn": [],
+      "optional": false,
+      "defaultExclusiveJoinTask": [],
+      "asyncComplete": false,
+      "loopOver": [],
+      "onStateChange": {},
+      "permissive": false
+    },
+    {
+      "name": "generate_resume_json",
+      "taskReferenceName": "generate_resume_json_ref",
+      "inputParameters": {
+        "resume_text": "${extract_pdf_text_ref.output.text}",
+        "api_key": "AIzaSyAHHEqcSqKLm_RyPBq4WAePjZtNuf3-o5w"
+      },
+      "type": "SIMPLE",
+      "decisionCases": {},
+      "defaultCase": [],
+      "forkTasks": [],
+      "startDelay": 0,
+      "joinOn": [],
+      "optional": false,
+      "defaultExclusiveJoinTask": [],
+      "asyncComplete": false,
+      "loopOver": [],
+      "onStateChange": {},
+      "permissive": false
+    },
+    {
+      "name": "format_resume_content",
+      "taskReferenceName": "format_resume_content_ref",
+      "inputParameters": {
+        "resume_json": "${generate_resume_json_ref.output.json_data}"
+      },
+      "type": "SIMPLE",
+      "decisionCases": {},
+      "defaultCase": [],
+      "forkTasks": [],
+      "startDelay": 0,
+      "joinOn": [],
+      "optional": false,
+      "defaultExclusiveJoinTask": [],
+      "asyncComplete": false,
+      "loopOver": [],
+      "onStateChange": {},
+      "permissive": false
+    },
+    {
+      "name": "parallel_embedding_tasks",
+      "taskReferenceName": "parallel_embeddings",
+      "inputParameters": {},
+      "type": "FORK_JOIN",
+      "decisionCases": {},
+      "defaultCase": [],
+      "forkTasks": [
+        [
+          {
+            "name": "generate_jd_embeddings",
+            "taskReferenceName": "jd_embeddings_ref",
+            "inputParameters": {
+              "text": "${parallel_embeddings.input.jd_text}",
+              "model_name": "${parallel_embeddings.input.model_name}"
+            },
+            "type": "SIMPLE",
+            "decisionCases": {},
+            "defaultCase": [],
+            "forkTasks": [],
+            "startDelay": 0,
+            "joinOn": [],
+            "optional": false,
+            "defaultExclusiveJoinTask": [],
+            "asyncComplete": false,
+            "loopOver": [],
+            "onStateChange": {},
+            "permissive": false
+          }
+        ],
+        [
+          {
+            "name": "generate_resume_embeddings",
+            "taskReferenceName": "resume_embeddings_ref",
+            "inputParameters": {
+              "text": "${parallel_embeddings.input.resume_text}",
+              "model_name": "${parallel_embeddings.input.model_name}"
+            },
+            "type": "SIMPLE",
+            "decisionCases": {},
+            "defaultCase": [],
+            "forkTasks": [],
+            "startDelay": 0,
+            "joinOn": [],
+            "optional": false,
+            "defaultExclusiveJoinTask": [],
+            "asyncComplete": false,
+            "loopOver": [],
+            "onStateChange": {},
+            "permissive": false
+          }
+        ]
+      ],
+      "startDelay": 0,
+      "joinOn": [],
+      "optional": false,
+      "defaultExclusiveJoinTask": [],
+      "asyncComplete": false,
+      "loopOver": [],
+      "onStateChange": {},
+      "permissive": false
+    },
+    {
+      "name": "join_embedding_tasks",
+      "taskReferenceName": "join_embeddings_ref",
+      "inputParameters": {},
+      "type": "JOIN",
+      "decisionCases": {},
+      "defaultCase": [],
+      "forkTasks": [],
+      "startDelay": 0,
+      "joinOn": [
+        "jd_embeddings_ref",
+        "resume_embeddings_ref"
+      ],
+      "optional": false,
+      "defaultExclusiveJoinTask": [],
+      "asyncComplete": false,
+      "loopOver": [],
+      "onStateChange": {},
+      "permissive": false
+    },
+    {
+      "name": "calculate_similarity",
+      "taskReferenceName": "calculate_similarity_ref",
+      "inputParameters": {
+        "jd_embeddings": "${jd_embeddings_ref.output.embeddings}",
+        "resume_embeddings": "${resume_embeddings_ref.output.embeddings}"
+      },
+      "type": "SIMPLE",
+      "decisionCases": {},
+      "defaultCase": [],
+      "forkTasks": [],
+      "startDelay": 0,
+      "joinOn": [],
+      "optional": false,
+      "defaultExclusiveJoinTask": [],
+      "asyncComplete": false,
+      "loopOver": [],
+      "onStateChange": {},
+      "permissive": false
+    }
+  ],
+  "inputParameters": [
+    "pdf_path",
+    "job_description"
+  ],
+  "outputParameters": {
+    "similarity_percentage": "${calculate_similarity_ref.output.percentage}",
+    "resume_json": "${generate_resume_json_ref.output.json_data}",
+    "formatted_resume": "${format_resume_content_ref.output.formatted_content}"
+  },
+  "schemaVersion": 2,
+  "restartable": true,
+  "workflowStatusListenerEnabled": false,
+  "ownerEmail": "shivlumewada@gmail.com",
+  "timeoutPolicy": "ALERT_ONLY",
+  "timeoutSeconds": 300,
+  "variables": {},
+  "inputTemplate": {},
+  "enforceSchema": true,
+  "metadata": {},
+  "maskedFields": []
+}
