@@ -1,9 +1,9 @@
 {
   "createTime": 1755869049863,
-  "updateTime": 1755870533861,
+  "updateTime": 1755877954641,
   "name": "resume_analysis_workflow",
   "description": "Workflow to analyze resume and calculate similarity with job description",
-  "version": 2,
+  "version": 3,
   "tasks": [
     {
       "name": "extract_pdf_text",
@@ -28,7 +28,7 @@
       "name": "generate_resume_json",
       "taskReferenceName": "generate_resume_json_ref",
       "inputParameters": {
-        "resume_text": "${extract_pdf_text_ref.output.text}",
+        "resume_text": "${extract_pdf_text_ref.output.result}",
         "api_key": "AIzaSyAHHEqcSqKLm_RyPBq4WAePjZtNuf3-o5w"
       },
       "type": "SIMPLE",
@@ -66,7 +66,11 @@
     {
       "name": "parallel_embedding_tasks",
       "taskReferenceName": "parallel_embeddings",
-      "inputParameters": {},
+      "inputParameters": {
+        "resume_text": "${format_resume_content_ref.output.formatted_content}",
+        "model_name": "all-MiniLM-L6-v2",
+        "jd_text": "${workflow.input.job_description}"
+      },
       "type": "FORK_JOIN",
       "decisionCases": {},
       "defaultCase": [],
@@ -76,8 +80,8 @@
             "name": "generate_jd_embeddings",
             "taskReferenceName": "jd_embeddings_ref",
             "inputParameters": {
-              "text": "${parallel_embeddings.input.jd_text}",
-              "model_name": "${parallel_embeddings.input.model_name}"
+              "text": "${workflow.input.job_description}",
+              "model_name": "all-MiniLM-L6-v2"
             },
             "type": "SIMPLE",
             "decisionCases": {},
@@ -98,8 +102,8 @@
             "name": "generate_resume_embeddings",
             "taskReferenceName": "resume_embeddings_ref",
             "inputParameters": {
-              "text": "${parallel_embeddings.input.resume_text}",
-              "model_name": "${parallel_embeddings.input.model_name}"
+              "text": "${format_resume_content_ref.output.formatted_content}",
+              "model_name": "all-MiniLM-L6-v2"
             },
             "type": "SIMPLE",
             "decisionCases": {},
